@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using TaskManagementFa.Data;
+using TaskManagementFa.Model;
 
 namespace TaskManagementFa.Controllers
 {
@@ -7,54 +11,71 @@ namespace TaskManagementFa.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
-        // Get /api/tasks
+        private readonly AppDbContext _context;
+
+        public TasksController(AppDbContext context)
+        {
+            _context=context;
+        }
+
         [HttpGet]
-        public IActionResult GetTasks()
+        public async Task<ActionResult<List<TaskItem>>>  GetAll()
         {
-            var tasks = new List<string>
-            {
-                "Task 1",
-                "Task 2",
-                "Task 3"
-            };
+            var tasks = await _context.Tasks.ToListAsync();
+
             return Ok(tasks);
         }
-        //Get /api/tasks/active
-        [HttpGet("active")]
-        public IActionResult Get()
-        {
-            var tasks = new List<string>
-            {
-                "Task 1",
-                "Task 2",
-                "Task 3"
-            };
-            return Ok(tasks);
-        }
-        // Get /api/tasks/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetTasksById(int id)
-        {
-            return Ok(id);
-        }
 
-        //post /api/tasks
-        [HttpPost]
-        public IActionResult Create()
-        {
-            return Ok();
-        }
+        
+    [HttpGet("{id}")]
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id)
+    public async Task<ActionResult<TaskItem>> GetTaskById(int id)
+    {
+        var task = await _context.Tasks.FindAsync(id) ;
+        if (task == null)
         {
-            return Ok();
+            return NotFound();
         }
+        return Ok(task);
+    }
+
+    [HttpPost]
+
+    public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
+    {
+        _context.Tasks.Add(task);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetTaskById), new { id = task.ID }, task);
+    }
+
+    [HttpPut("{id}")]
+
+    public async Task<IActionResult>  PutTask(int id, TaskItem task)
+    {
+        if (id != task.ID) 
+            return BadRequest();
+        var existingTask = await _context.Tasks.FindAsync(id);
+        if (existingTask is null)
+            return NotFound();
+        existingTask.Title = task.Title;
+        existingTask.Description = task.Description;
+        existingTask.IsCompleted = task.IsCompleted;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteTask(int id)
         {
-            return Ok();
+            var task = await _context.Tasks.FindAsync(id);
+            if (task is null) 
+                return NotFound();
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return NoContent();
+
         }
+        //controller->DbContext->Ef core-> SQL Server
+
     }
 }
