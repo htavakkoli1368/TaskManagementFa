@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using TaskManagementFa.Data;
+using TaskManagementFa.DTOs;
 using TaskManagementFa.Model;
 
 namespace TaskManagementFa.Controllers
@@ -41,8 +42,14 @@ namespace TaskManagementFa.Controllers
 
     [HttpPost]
 
-    public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
+    public async Task<ActionResult<TaskItem>> CreateTask(CreateTaskItemDto taskDto)
     {
+        var task = new TaskItem
+        {
+            Title = taskDto.TaskName,
+            Description = taskDto.Desc,
+            IsCompleted = false
+        };
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetTaskById), new { id = task.ID }, task);
@@ -50,15 +57,13 @@ namespace TaskManagementFa.Controllers
 
     [HttpPut("{id}")]
 
-    public async Task<IActionResult>  PutTask(int id, TaskItem task)
+    public async Task<IActionResult>  PutTask(int id, UpdataTaskItemDto task)
     {
-        if (id != task.ID) 
-            return BadRequest();
         var existingTask = await _context.Tasks.FindAsync(id);
         if (existingTask is null)
             return NotFound();
-        existingTask.Title = task.Title;
-        existingTask.Description = task.Description;
+        existingTask.Title = task.TaskName;
+        existingTask.Description = task.Desc;
         existingTask.IsCompleted = task.IsCompleted;
         await _context.SaveChangesAsync();
         return NoContent();
