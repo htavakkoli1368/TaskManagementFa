@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagementFa.Data;
+using TaskManagementFa.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
