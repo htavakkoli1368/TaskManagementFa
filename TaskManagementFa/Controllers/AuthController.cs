@@ -27,7 +27,9 @@ namespace TaskManagementFa.Controllers
             var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new System.Security.Claims.Claim(ClaimTypes.Name, request.UserName)             
+                new System.Security.Claims.Claim(ClaimTypes.Name, request.UserName) ,       
+                new System.Security.Claims.Claim(ClaimTypes.Role, "admin")       
+                   
             };
             var token = new JwtSecurityToken(
                 claims: claims,
